@@ -1,0 +1,4 @@
+name = "ArrayUtil"
+uuid = "53cd29f2-c28d-11e9-1567-bd5452eeb1a0"
+authors = ["johti <johti17@liu.se>"]
+version = "0.1.0"
