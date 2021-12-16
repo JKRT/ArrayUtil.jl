@@ -40,8 +40,8 @@ using MetaModelica.Dangerous: arrayGetNoBoundsChecking, arrayUpdateNoBoundsCheck
 applied for each element.  Since it will update the array values the returned
 array must have the same type, and thus the applied function must also return
 the same type. """
-function mapNoCopy(inArray::Array{T}, inFunc::Function)  where {T}
-  local outArray::Array{T} = inArray
+function mapNoCopy(inArray::Vector{T}, inFunc::Function)  where {T}
+  local outArray::Vector{T} = inArray
   for i in 1:arrayLength(inArray)
     arrayUpdate(inArray, i, inFunc(arrayGetNoBoundsChecking(inArray, i)))
   end
@@ -50,9 +50,9 @@ end
 
 """ Same as arrayMapNoCopy, but with an additional arguments that's updated for
 each call. """
-function mapNoCopy_1(inArray::Array{T}, inFunc::Function, inArg::ArgT)  where {T, ArgT}
+function mapNoCopy_1(inArray::Vector{T}, inFunc::Function, inArg::ArgT)  where {T, ArgT}
   local outArg::ArgT = inArg
-  local outArray::Array{T} = inArray
+  local outArray::Vector{T} = inArray
   local e::T
   for i in 1:arrayLength(inArray)
     (e, outArg) = inFunc((arrayGetNoBoundsChecking(inArray, i), outArg))
@@ -98,7 +98,7 @@ function heapSort(inArray::Array{<:ModelicaInteger}) ::Array{ModelicaInteger}
   inArray
 end
 
-function findFirstOnTrue(inArray::Array{T}, inPredicate::Function)  where {T}
+function findFirstOnTrue(inArray::Vector{T}, inPredicate::Function)  where {T}
   local outElement::Option{T}
 
   outElement = NONE()
@@ -111,7 +111,7 @@ function findFirstOnTrue(inArray::Array{T}, inPredicate::Function)  where {T}
   outElement
 end
 
-function findFirstOnTrueWithIdx(inArray::Array{T}, inPredicate::Function)  where {T}
+function findFirstOnTrueWithIdx(inArray::Vector{T}, inPredicate::Function)  where {T}
   local idxOut::ModelicaInteger = -1
   local outElement::Option{T}
   local idx::ModelicaInteger = 1
@@ -129,8 +129,8 @@ end
 
 """ Takes an array and a list of indices, and returns a new array with the
 indexed elements. Will fail if any index is out of bounds. """
-function select(inArray::Array{T}, inIndices::List{ModelicaInteger})  where {T}
-  local outArray::Array{T}
+function select(inArray::Vector{T}, inIndices::List{ModelicaInteger})  where {T}
+  local outArray::Vector{T}
   local i::ModelicaInteger = 1
   outArray = arrayCreateNoInit(listLength(inIndices), inArray[1])
   for e in inIndices
@@ -186,7 +186,7 @@ function map1(inArray::Array{TI}, inFunc::Function, inArg::ArgT)  where {TI, TO,
 end
 
 """ Applies a non-returning function to all elements in an array. """
-function map0(inArray::Array{T}, inFunc::Function)  where {T}
+function map0(inArray::Vector{T}, inFunc::Function)  where {T}
   for e in inArray
     inFunc(e)
   end
@@ -215,7 +215,7 @@ end
 """ Takes an array, a function, and a start value. The function is applied to
 each array element, and the start value is passed to the function and
 updated. """
-function fold(inArray::Array{T}, inFunction::Function, inStartValue::FoldT)  where {T, FoldT}
+function fold(inArray::Vector{T}, inFunction::Function, inStartValue::FoldT)  where {T, FoldT}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, outResult)
@@ -226,7 +226,7 @@ end
 """ Takes an array, a function, and a start value. The function is applied to
 each array element, and the start value is passed to the function and
 updated. """
-function fold1(inArray::Array{T}, inFunction::Function, inArg::ArgT, inStartValue::FoldT)  where {T, FoldT, ArgT}
+function fold1(inArray::Vector{T}, inFunction::Function, inArg::ArgT, inStartValue::FoldT)  where {T, FoldT, ArgT}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg, outResult)
@@ -237,7 +237,7 @@ end
 """ Takes an array, a function, a constant parameter, and a start value. The
 function is applied to each array element, and the start value is passed to
 the function and updated. """
-function fold2(inArray::Array{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2}
+function fold2(inArray::Vector{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg1, inArg2, outResult)
@@ -248,7 +248,7 @@ end
 """ Takes an array, a function, a constant parameter, and a start value. The
 function is applied to each array element, and the start value is passed to
 the function and updated. """
-function fold3(inArray::Array{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3}
+function fold3(inArray::Vector{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg1, inArg2, inArg3, outResult)
@@ -259,7 +259,7 @@ end
 """ Takes an array, a function, four constant parameters, and a start value. The
 function is applied to each array element, and the start value is passed to
 the function and updated. """
-function fold4(inArray::Array{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4}
+function fold4(inArray::Vector{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg1, inArg2, inArg3, inArg4, outResult)
@@ -270,7 +270,7 @@ end
 """ Takes an array, a function, four constant parameters, and a start value. The
 function is applied to each array element, and the start value is passed to
 the function and updated. """
-function fold5(inArray::Array{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inArg5::ArgT5, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5}
+function fold5(inArray::Vector{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inArg5::ArgT5, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg1, inArg2, inArg3, inArg4, inArg5, outResult)
@@ -281,7 +281,7 @@ end
 """ Takes an array, a function, four constant parameters, and a start value. The
 function is applied to each array element, and the start value is passed to
 the function and updated. """
-function fold6(inArray::Array{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inArg5::ArgT5, inArg6::ArgT6, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5, ArgT6}
+function fold6(inArray::Vector{T}, inFunction::Function, inArg1::ArgT1, inArg2::ArgT2, inArg3::ArgT3, inArg4::ArgT4, inArg5::ArgT5, inArg6::ArgT6, inStartValue::FoldT)  where {T, FoldT, ArgT1, ArgT2, ArgT3, ArgT4, ArgT5, ArgT6}
   local outResult::FoldT = inStartValue
   for e in inArray
     outResult = inFunction(e, inArg1, inArg2, inArg3, inArg4, inArg5, inArg6, outResult)
@@ -292,7 +292,7 @@ end
 """ Takes an array, a function, and a start value. The function is applied to
 each array element, and the start value is passed to the function and
 updated, additional the index of the passed element is also passed to the function. """
-function foldIndex(inArray::Array{T}, inFunction::Function, inStartValue::FoldT)  where {T, FoldT}
+function foldIndex(inArray::Vector{T}, inFunction::Function, inStartValue::FoldT)  where {T, FoldT}
   local outResult::FoldT = inStartValue
   local e::T
   for i in 1:arrayLength(inArray)
@@ -306,7 +306,7 @@ end
 The function performs a reduction of the array to a single value using the
 function. Example:
 reduce([1, 2, 3], intAdd) => 6 """
-function reduce(inArray::Array{T}, inFunction::Function)  where {T}
+function reduce(inArray::Vector{T}, inFunction::Function)  where {T}
   local outResult::T
   local rest::List{T}
   outResult = arrayGet(inArray, 1)
@@ -317,23 +317,23 @@ function reduce(inArray::Array{T}, inFunction::Function)  where {T}
 end
 
 """ Like arrayUpdate, but with the index first so it can be used with List.map. """
-function updateIndexFirst(inIndex::ModelicaInteger, inValue::T, inArray::Array{T})  where {T}
+function updateIndexFirst(inIndex::ModelicaInteger, inValue::T, inArray::Vector{T})  where {T}
   arrayUpdate(inArray, inIndex, inValue)
 end
 
 """ Like arrayGet, but with the index first so it can used with List.map. """
-function getIndexFirst(inIndex::ModelicaInteger, inArray::Array{T})  where {T}
+function getIndexFirst(inIndex::ModelicaInteger, inArray::Vector{T})  where {T}
   local outElement::T = arrayGet(inArray, inIndex)
   outElement
 end
 
 """ Replaces the element with the given index in the second array with the value
 of the corresponding element in the first array. """
-function updatewithArrayIndexFirst(inIndex::ModelicaInteger, inArraySrc::Array{T}, inArrayDest::Array{T})  where {T}
+function updatewithArrayIndexFirst(inIndex::ModelicaInteger, inArraySrc::Vector{T}, inArrayDest::Vector{T})  where {T}
   arrayUpdate(inArrayDest, inIndex, inArraySrc[inIndex])
 end
 
-function updatewithListIndexFirst(inList::List{ModelicaInteger}, inStartIndex::ModelicaInteger, inArraySrc::Array{T}, inArrayDest::Array{T})  where {T}
+function updatewithListIndexFirst(inList::List{ModelicaInteger}, inStartIndex::ModelicaInteger, inArraySrc::Vector{T}, inArrayDest::Vector{T})  where {T}
   for i in inStartIndex:inStartIndex + listLength(inList)
     arrayUpdate(inArrayDest, i, inArraySrc[i])
   end
@@ -354,8 +354,8 @@ to that element position and then insert the value at the position.
 
 Example:
 replaceAtWithFill('A', 5, {'a', 'b', 'c'}, 'dummy') => {'a', 'b', 'c', 'dummy', 'A'} """
-function replaceAtWithFill(inPos::ModelicaInteger, inTypeReplace::T, inTypeFill::T, inArray::Array{T})  where {T}
-  local outArray::Array{T}
+function replaceAtWithFill(inPos::ModelicaInteger, inTypeReplace::T, inTypeFill::T, inArray::Vector{T})  where {T}
+  local outArray::Vector{T}
 
   outArray = expandToSize(inPos, inArray, inTypeFill)
   arrayUpdate(outArray, inPos, inTypeReplace)
@@ -364,8 +364,8 @@ end
 
 """ Expands an array to the given size, or does nothing if the array is already
 large enough. """
-function expandToSize(inNewSize::ModelicaInteger, inArray::Array{T}, inFill::T)  where {T}
-  local outArray::Array{T}
+function expandToSize(inNewSize::ModelicaInteger, inArray::Vector{T}, inFill::T)  where {T}
+  local outArray::Vector{T}
   if inNewSize <= arrayLength(inArray)
     outArray = inArray
   else
@@ -377,8 +377,8 @@ end
 
 """ Increases the number of elements of an array with inN. Each new element is
 assigned the value inFill. """
-function expand(inN::ModelicaInteger, inArray::Array{T}, inFill::T)  where {T}
-  local outArray::Array{T}
+function expand(inN::ModelicaInteger, inArray::Vector{T}, inFill::T)  where {T}
+  local outArray::Vector{T}
   local len::ModelicaInteger
   if inN < 1
     outArray = inArray
@@ -393,8 +393,8 @@ end
 
 """ Resizes an array with the given factor if the array is smaller than the
 requested size. """
-function expandOnDemand(inNewSize::ModelicaInteger #= The number of elements that should fit in the array. =#, inArray::Array{T} #= The array to resize. =#, inExpansionFactor::ModelicaReal #= The factor to resize the array with. =#, inFillValue::T #= The value to fill the new part of the array. =#)  where {T}
-  local outArray::Array{T} #= The resulting array. =#
+function expandOnDemand(inNewSize::ModelicaInteger #= The number of elements that should fit in the array. =#, inArray::Vector{T} #= The array to resize. =#, inExpansionFactor::ModelicaReal #= The factor to resize the array with. =#, inFillValue::T #= The value to fill the new part of the array. =#)  where {T}
+  local outArray::Vector{T} #= The resulting array. =#
 
   local new_size::ModelicaInteger
   local len::ModelicaInteger = arrayLength(inArray)
@@ -425,8 +425,8 @@ function appendToElement(inIndex::ModelicaInteger, inElements::List{T}, inArray:
 end
 
 """ Returns a new array with the list elements added to the end of the given array. """
-function appendList(arr::Array{T}, lst::List{T})  where {T}
-  local outArray::Array{T}
+function appendList(arr::Vector{T}, lst::List{T})  where {T}
+  local outArray::Vector{T}
   local arr_len::ModelicaInteger = arrayLength(arr)
   local lst_len::ModelicaInteger
   local e::T
@@ -453,8 +453,8 @@ larger than inArrayDest.
 
 NOTE: There's also a builtin arrayCopy operator that should be used if the
 purpose is only to duplicate an array. """
-function copy(inArraySrc::Array{T}, inArrayDest::Array{T})  where {T}
-  local outArray::Array{T} = inArrayDest
+function copy(inArraySrc::Vector{T}, inArrayDest::Vector{T})  where {T}
+  local outArray::Vector{T} = inArrayDest
 
   if arrayLength(inArraySrc) > arrayLength(inArrayDest)
     fail()
@@ -467,8 +467,8 @@ end
 
 """ Copies the first inN values from inArraySrc to inArrayDest. Fails if
 inN is larger than either inArraySrc or inArrayDest. """
-function copyN(inArraySrc::Array{T}, inArrayDest::Array{T}, inN::ModelicaInteger)  where {T}
-  local outArray::Array{T} = inArrayDest
+function copyN(inArraySrc::Vector{T}, inArrayDest::Vector{T}, inN::ModelicaInteger)  where {T}
+  local outArray::Vector{T} = inArrayDest
   if inN > arrayLength(inArrayDest) || inN > arrayLength(inArraySrc)
     fail()
   end
@@ -479,7 +479,7 @@ function copyN(inArraySrc::Array{T}, inArrayDest::Array{T}, inN::ModelicaInteger
 end
 
 """ Copies a range of elements from one array to another. """
-function copyRange(srcArray::Array{T} #= The array to copy from. =#, dstArray::Array{T} #= The array to insert into. =#, srcFirst::ModelicaInteger #= The index of the first element to copy. =#, srcLast::ModelicaInteger #= The index of the last element to copy. =#, dstPos::ModelicaInteger #= The index to begin inserting at. =#)  where {T}
+function copyRange(srcArray::Vector{T} #= The array to copy from. =#, dstArray::Vector{T} #= The array to insert into. =#, srcFirst::ModelicaInteger #= The index of the first element to copy. =#, srcLast::ModelicaInteger #= The index of the last element to copy. =#, dstPos::ModelicaInteger #= The index to begin inserting at. =#)  where {T}
   local offset::ModelicaInteger = dstPos - srcFirst
   if srcFirst > srcLast || srcLast > arrayLength(srcArray) || offset + srcLast > arrayLength(dstArray)
     fail()
@@ -500,8 +500,8 @@ function createIntRange(inLen::ModelicaInteger) ::Array{ModelicaInteger}
 end
 
 """ Sets the elements in positions inStart to inEnd to inValue. """
-function setRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Array{T}, inValue::T)  where {T}
-  local outArray::Array{T} = inArray
+function setRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Vector{T}, inValue::T)  where {T}
+  local outArray::Vector{T} = inArray
   if inStart > arrayLength(inArray)
     fail()
   end
@@ -512,7 +512,7 @@ function setRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Arr
 end
 
 """ Gets the elements between inStart and inEnd. """
-function getRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Array{T})  where {T}
+function getRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Vector{T})  where {T}
   local outList::List{T} = nil()
   local value::T
   if inStart > arrayLength(inArray)
@@ -526,7 +526,7 @@ function getRange(inStart::ModelicaInteger, inEnd::ModelicaInteger, inArray::Arr
 end
 
 """ Returns the index of the given element in the array, or 0 if it wasn't found. """
-function position(inArray::Array{T}, inElement::T, inFilledSize::ModelicaInteger = arrayLength(inArray) #= The filled size of the array. =#)  where {T}
+function position(inArray::Vector{T}, inElement::T, inFilledSize::ModelicaInteger = arrayLength(inArray) #= The filled size of the array. =#)  where {T}
   local outIndex::ModelicaInteger
   local e::T
   for i in 1:inFilledSize
@@ -556,8 +556,8 @@ function getMemberOnTrue(inValue::VT, inArray::Array{ET}, inFunction::Function) 
 end
 
 """ reverses the elements in an array """
-function reverse(inArray::Array{T})  where {T}
-  local outArray::Array{T}
+function reverse(inArray::Vector{T})  where {T}
+  local outArray::Vector{T}
   local size::ModelicaInteger
   local i::ModelicaInteger
   local elem1::T
@@ -587,7 +587,7 @@ function arrayListsEmpty1(lst::List{T}, isEmptyIn::Bool)  where {T}
 end
 
 """ Checks if two arrays are equal. """
-function isEqual(inArr1::Array{T}, inArr2::Array{T})  where {T}
+function isEqual(inArr1::Vector{T}, inArr2::Vector{T})  where {T}
   local outIsEqual::Bool = true
   local arrLength::ModelicaInteger
   arrLength = arrayLength(inArr1)
@@ -605,7 +605,7 @@ end
 
 """ Returns true if a certain element exists in the given array as indicated by
 the given predicate function. """
-function exist(arr::Array{T}, pred::Function)  where {T}
+function exist(arr::Vector{T}, pred::Function)  where {T}
   local exists::Bool
   for e in arr
     if pred(e)
@@ -617,7 +617,7 @@ function exist(arr::Array{T}, pred::Function)  where {T}
   exists
 end
 
-function insertList(arr::Array{T}, lst::List{T}, startPos::ModelicaInteger)  where {T}
+function insertList(arr::Vector{T}, lst::List{T}, startPos::ModelicaInteger)  where {T}
   local i::ModelicaInteger = startPos
   for e in lst
     arr[i] = e
