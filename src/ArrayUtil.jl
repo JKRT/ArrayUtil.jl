@@ -140,16 +140,18 @@ function select(inArray::Vector{T}, inIndices::List{ModelicaInteger})  where {T}
   outArray
 end
 
-""" Takes an array and a function over the elements of the array, which is
+"""
+Takes an array and a function over the elements of the array, which is
 applied to each element. The updated elements will form a new array, leaving
-the original array unchanged. """
-function map(inArray::Array{TI}, inFunc::Function)  where {TI, TO}
-  local outArray::Array{TO}
-  local len::ModelicaInteger = arrayLength(inArray)
-  local res::TO
+the original array unchanged.
+"""
+function map(inArray::Vector{TI}, inFunc::Function)  where {TI}
+  local outArray::Vector{T1}
+  local len::Int = arrayLength(inArray)
+  local res
   #=  If the array is empty, use list transformations to fix the types! =#
   if len == 0
-    outArray = listArray(nil())
+    outArray = T1[]
   else
     res = inFunc(arrayGetNoBoundsChecking(inArray, 1))
     outArray = arrayCreateNoInit(len, res)
@@ -158,18 +160,17 @@ function map(inArray::Array{TI}, inFunc::Function)  where {TI, TO}
       arrayUpdateNoBoundsChecking(outArray, i, inFunc(arrayGetNoBoundsChecking(inArray, i)))
     end
   end
-  #=  If the array isn't empty, use the first element to create the new array.
-  =#
+  #=  If the array isn't empty, use the first element to create the new array. =#
   outArray
 end
 
 """ Takes an array, an extra arguments, and a function over the elements of the
 array, which is applied to each element. The updated elements will form a new
 array, leaving the original array unchanged. """
-function map1(inArray::Array{TI}, inFunc::Function, inArg::ArgT)  where {TI, TO, ArgT}
-  local outArray::Array{TO}
+function map1(inArray::Vector{TI}, inFunc::Function, inArg::ArgT)  where {TI, ArgT}
+  local outArray::Vector
   local len::ModelicaInteger = arrayLength(inArray)
-  local res::TO
+  local res
   #=  If the array is empty, use list transformations to fix the types! =#
   if len == 0
     outArray = listArray(nil())
@@ -193,13 +194,13 @@ function map0(inArray::Vector{T}, inFunc::Function)  where {T}
 end
 
 """ As map, but takes a list in and creates an array from the result. """
-function mapList(inList::List{TI}, inFunc::Function)  where {TI, TO}
-  local outArray::Array{TO}
+function mapList(inList::List{TI}, inFunc::Function)  where {TI}
+  local outArray::Vector
   local i::ModelicaInteger = 2
   local len::ModelicaInteger = listLength(inList)
-  local res::TO
+  local res
   if len == 0
-    outArray = listArray(nil())
+    outArray = []
   else
     res = inFunc(listHead(inList))
     outArray = arrayCreateNoInit(len, res)
@@ -212,11 +213,28 @@ function mapList(inList::List{TI}, inFunc::Function)  where {TI, TO}
   outArray
 end
 
+"""
+Takes a vector, an extra argument and a function. The function will be applied
+to each element in the list, and the extra argument will be passed to the
+function and updated.
+"""
+function mapFold(inArray::Vector{T}, inFunc::Function, inArg::FT) where {T, FT}
+  local outArg::FT = inArg
+  local outArr = Vector{T}(undef, length(inArray))
+  for (i,e) in enumerate(inArray)
+    (res, outArg) = inFunc(e, outArg)
+    outArr[i] = res
+  end
+  return (outArr, outArg)
+end
+
 """ Takes an array, a function, and a start value. The function is applied to
 each array element, and the start value is passed to the function and
 updated. """
-function fold(inArray::Vector{T}, inFunction::Function, inStartValue::FoldT)  where {T, FoldT}
-  local outResult::FoldT = inStartValue
+function fold(inArray::Vector{T},
+              inFunction::Function,
+              inStartValue) where {T}
+  local outResult = inStartValue
   for e in inArray
     outResult = inFunction(e, outResult)
   end
@@ -448,6 +466,49 @@ function appendList(arr::Vector{T}, lst::List{T})  where {T}
   outArray
 end
 
+"""
+ Returns the input array with the list elements added to the end of the given array.
+@author:johti17
+"""
+function appendList!(arr::Vector{T}, lst::Cons{T}) where {T}
+  local outArray::Vector{T}
+  local arr_len::ModelicaInteger = length(arr)
+  local e::T
+  if arr_len == 0
+    arr = listArray(lst)
+  else
+    local lstLen::Int = length(lst)
+    resize!(arr, (arr_len + lstLen))
+    local i::Int = 1
+    for e in lst
+      arr[i + arr_len] = e
+      i += 1
+    end
+  end
+  arr
+end
+
+function appendList!(arr::Vector{T}, lst::Nil) where {T}
+  return arr
+end
+
+"""
+Returns true if the given predicate function returns true for all elements in
+the given Vector.
+"""
+function all(inList::Vector{T}, inFunc::Function)  where {T}
+  local outResult::Bool = false
+  for e in inList
+    if ! inFunc(e)
+      outResult = false
+      return outResult
+    end
+  end
+  outResult = true
+  return outResult
+end
+
+
 """ Copies all values from inArraySrc to inArrayDest. Fails if inArraySrc is
 larger than inArrayDest.
 
@@ -624,6 +685,141 @@ function insertList(arr::Vector{T}, lst::List{T}, startPos::ModelicaInteger)  wh
     i = i + 1
   end
   arr
+end
+
+"""
+Goes through an Array and removes all elements which are equal to the given
+value, using the given comparison function.
+@author:johti17
+"""
+function removeOnTrue(val::T, compFunc::Function, arr::Vector{T0}) where {T, T0}
+  [i for i in arr if ! compFunc(val, i)]
+end
+
+"""
+Takes a list and a position, and splits the list at the position given.
+Example:
+```
+julia> split([1, 2, 5, 7], 2) => ([1, 2], [5, 7])
+```
+"""
+function split(inArr::Vector{T},  inPosition::Int) where {T}
+  local outArr1 = T[]
+  local outArr2 = T[]
+  local pos::Int
+  local a1 = T[]
+  local a2 = Base.copy(inArr)
+  local e::T
+  @match true = inPosition >= 0
+  pos = inPosition
+  for i in 1:pos
+    e = popfirst!(a2)
+    push!(a1, e)
+  end
+  outArr1 = a1
+  outArr2 = a2
+  return (outArr1, outArr2)
+end
+
+"""
+function partition(inList::Vector{T}, inPartitionLength::Int) where {T}
+Partitions a vector of elements into sublists of length n.
+Example:
+```
+julia> partition([1, 2, 3, 4, 5], 2) => [[1, 2], [3, 4], [5]]
+```
+"""
+function partition(inV::Vector{T}, inPartitionLength::ModelicaInteger)  where {T}
+  @match true = inPartitionLength > 0
+  local vLength = length(inV)
+  outPartitions::Vector{Vector{T}} = Vector{T}[]
+  if vLength == 0
+    return Vector{T}[]#outPartitions
+  elseif inPartitionLength >= vLength
+    return Vector{T}[inV]
+  end #Else proceed
+  #=
+  Declare local vars
+  =#
+  local vWork::Vector = inV
+  for i in 1:div(vLength, inPartitionLength)
+    (part, vWork) = split(vWork, inPartitionLength)
+    push!(outPartitions, part)
+  end
+  #= And the remainder =#
+  if ! isempty(vWork)
+    push!(outPartitions, vWork)
+  end
+  return outPartitions
+end
+
+"""
+Transposes a vector of vectors
+Example:
+```
+julia:> transposeArray([[1, 2, 3], [4, 5, 6]])
+3-element Vector{Vector{Int64}}:
+ [1, 4]
+ [2, 5]
+ [3, 6]
+```
+"""
+function transposeArray(arr::Vector{Vector{T}}) where {T}
+  local N = length(arr)
+  local M = length(arr[1])
+  local outArr = Vector{Vector{T}}(undef, M)
+  for i in 1:M
+    col = Vector{T}(undef, N)
+    local cntr = 0
+    for j in 1:N
+      col[j] = arr[j][i]
+    end
+    outArr[i] = col
+  end
+  return outArr
+end
+
+"""
+  Converts an array of type T into string representation.
+"""
+function toString(arr::Vector{T},
+                  toStringFunc::Function,
+                  pathString::String,
+                  beginStr::String,
+                  delimiter::String,
+                  endStr::String,
+                  printBeginEndIfEmpty::Bool) where {T}
+  local buffer = IOBuffer()
+  if isempty(arr) && printBeginEndIfEmpty
+    print(buffer, pathString)
+    print(buffer, beginStr)
+    print(buffer, endStr)
+  elseif isempty(arr)
+    print(buffer, pathString)
+  else
+    print(buffer, pathString)
+    print(buffer, beginStr)
+    local len = length(arr)
+    for i in 1:len
+      local e::T = arr[i]
+      print(buffer, toStringFunc(e))
+      if i != len
+        print(buffer, delimiter)
+      end
+    end
+    print(buffer, endStr)
+  end
+  return String(take!(buffer))
+end
+
+function allEqual(vec::Vector, fun::Function)
+  local allEq = true
+  for e1 in vec
+    for e2 in vec
+      allEq = fun(e1, e2)
+    end
+  end
+  return allEq
 end
 
 #= So that we can use wildcard imports and named imports when they do occur. Not good Julia practice =#
