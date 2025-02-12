@@ -754,6 +754,13 @@ function partition(inV::Vector{T}, inPartitionLength::ModelicaInteger)  where {T
 end
 
 """
+Fills an array with inElement inCount times.
+"""
+function fill(inElement::T, inCount::Int) where {T}
+  return Vector{T}(inElement, inCount)
+end
+
+"""
 Transposes a vector of vectors
 Example:
 ```
