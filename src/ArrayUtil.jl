@@ -228,6 +228,55 @@ function mapFold(inArray::Vector{T}, inFunc::Function, inArg::FT) where {T, FT}
   return (outArr, outArg)
 end
 
+
+"""
+```
+map1Fold
+```
+Takes a Vector, an extra argument, an extra constant argument, and a function.
+The function will be applied to each element in the list, and the extra
+argument will be passed to the function and updated.
+"""
+function map1Fold(inVec::Vector{TI}, inFunc::Function, inConstArg::ArgT1, inArg)  where {TI, ArgT1}
+  local outArg = inArg
+  local outVec::Vector
+  local res::Any
+  for e in inVec
+    (res, outArg) = inFunc(e, inConstArg, outArg)
+    outVec = push!(outVec, res)
+  end
+  return outVec, outArg
+end
+
+""" Applies a function to only the elements given by the sorted list of indices. """
+function mapIndices(inList::Vector{T}, indices::Vector{Int}, func::Function)  where {T}
+  local outList::Vector{T} = T[i for i in inList]
+  if isempty(indices)
+    return outList
+  end
+  for index in indices
+    outList[index] = func(inList[index])
+  end
+  return outList
+end
+
+
+"""
+Applies a function to only the elements given by the sorted list of indices.
+inline variant of ```mapIndices```
+"""
+function mapIndices!(inList::Vector{T}, indices::Vector{Int}, func::Function)  where {T}
+  if isempty(indices)
+    return inList
+  end
+  for index in indices
+    inList[index] = func(inList[index])
+  end
+  return inList
+end
+
+
+
 """ Takes an array, a function, and a start value. The function is applied to
 each array element, and the start value is passed to the function and
 updated. """
